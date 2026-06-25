@@ -26,25 +26,63 @@
             text-align: center;
         }
         h1 { color: white; margin-bottom: 30px; font-size: 2rem; text-shadow: 0 2px 10px rgba(0,0,0,0.3); }
-        
+
         .timezone-controls { margin-bottom: 25px; }
-        .timezone-controls label { display: block; color: rgba(255,255,255,0.8); margin-bottom: 8px; font-weight: 500; }
+        .timezone-controls label {
+            display: block;
+            color: rgba(255,255,255,0.8);
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
         #city-select {
-            padding: 10px 15px; border-radius: 8px; border: none; outline: none;
-            font-size: 1rem; cursor: pointer; color: #333; width: 100%; max-width: 300px;
+            padding: 10px 15px;
+            border-radius: 8px;
+            border: none;
+            outline: none;
+            font-size: 1rem;
+            cursor: pointer;
+            color: #333;
+            width: 100%;
+            max-width: 300px;
         }
 
-        .time-display { display: flex; justify-content: center; align-items: baseline; gap: 10px; margin-bottom: 25px; }
+        .time-display {
+            display: flex;
+            justify-content: center;
+            align-items: baseline;
+            gap: 10px;
+            margin-bottom: 25px;
+        }
         .time-part {
-            font-size: 3.5rem; font-weight: bold; color: white;
+            font-size: 3.5rem;
+            font-weight: bold;
+            color: white;
             text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
-            padding: 5px 15px; border-radius: 10px; background: rgba(0, 0, 0, 0.2);
+            padding: 5px 15px;
+            border-radius: 10px;
+            background: rgba(0, 0, 0, 0.2);
         }
-        .separator { font-size: 3.5rem; color: rgba(255, 255, 255, 0.7); animation: blink 1s step-end infinite; }
-        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+        .separator {
+            font-size: 3.5rem;
+            color: rgba(255, 255, 255, 0.7);
+            animation: blink 1s step-end infinite;
+        }
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
 
-        .date-display { color: rgba(255, 255, 255, 0.8); font-size: 1.2rem; margin-bottom: 15px; text-shadow: 0 1px 5px rgba(0,0,0,0.3); }
-        .timezone-info { color: rgba(255, 255, 255, 0.6); font-size: 0.9rem; font-style: italic; }
+        .date-display {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            text-shadow: 0 1px 5px rgba(0,0,0,0.3);
+        }
+        .timezone-info {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.9rem;
+            font-style: italic;
+        }
     </style>
 </head>
 <body>
@@ -75,6 +113,7 @@
     </div>
 
     <script>
+        // Находим все элементы один раз
         const hoursEl = document.querySelector('.hours');
         const minutesEl = document.querySelector('.minutes');
         const secondsEl = document.querySelector('.seconds');
@@ -83,19 +122,30 @@
         const selectEl = document.getElementById('city-select');
 
         function update() {
-            const tz = selectEl.value; // пустая строка = локальное время
+            const tz = selectEl.value || undefined; // пустая строка → undefined → локальное время
 
-            // Время
-            const timeOpts = { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false, timeZone: tz || undefined };
+            // Время: гарантированно получаем HH:MM:SS
+            const timeOpts = {
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: false,
+                timeZone: tz
+            };
             const timeStr = new Date().toLocaleTimeString('ru-RU', timeOpts);
-            // toLocaleTimeString возвращает "HH:MM:SS" — просто разбираем по двоеточию
             const [h, m, s] = timeStr.split(':');
             hoursEl.textContent = h;
             minutesEl.textContent = m;
             secondsEl.textContent = s;
 
             // Дата
-            const dateOpts = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', timeZone: tz || undefined };
+            const dateOpts = {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                timeZone: tz
+            };
             let dateStr = new Date().toLocaleDateString('ru-RU', dateOpts);
             dateStr = dateStr.charAt(0).toUpperCase() + dateStr.slice(1);
             dateEl.textContent = dateStr;
@@ -109,10 +159,11 @@
             }
         }
 
-        // Обновляем сразу и потом каждую секунду
+        // Запускаем сразу и каждую секунду
         update();
         setInterval(update, 1000);
     </script>
 </body>
 </html>
+
 
