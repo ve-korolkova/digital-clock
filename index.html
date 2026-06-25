@@ -42,6 +42,28 @@
             text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
         }
 
+        /* Блок для списка и лейбла */
+        .timezone-controls {
+            margin-bottom: 25px;
+        }
+        
+        .timezone-controls label {
+            display: block;
+            color: rgba(255,255,255,0.8);
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        #city-select {
+            padding: 10px 15px;
+            border-radius: 8px;
+            border: none;
+            outline: none;
+            font-size: 1rem;
+            cursor: pointer;
+            color: #333;
+        }
+
         .time-display {
             display: flex;
             justify-content: center;
@@ -96,6 +118,18 @@
     <div class="container">
         <div class="clock-widget">
             <h1>Цифровые часы</h1>
+
+            <!-- Добавлен блок выбора часового пояса -->
+            <div class="timezone-controls">
+                <label for="city-select">Часовой пояс:</label>
+                <select id="city-select">
+                    <option value="" selected>Местное время</option>
+                    <option value="Europe/Moscow">Москва (Europe/Moscow)</option>
+                    <option value="America/New_York">Нью-Йорк (America/New_York)</option>
+                    <option value="Asia/Tokyo">Токио (Asia/Tokyo)</option>
+                </select>
+            </div>
+
             <div class="time-display">
                 <span class="time-part hours">00</span>
                 <span class="separator">:</span>
@@ -116,20 +150,24 @@
                     minutes: document.querySelector('.minutes'),
                     seconds: document.querySelector('.seconds'),
                     dateDisplay: document.querySelector('.date-display'),
-            timezoneInfo: document.querySelector('.timezone-info')
+                    timezoneInfo: document.querySelector('.timezone-info'),
+                    select: document.getElementById('city-select')
                 };
+                
                 this.previousTime = { hours: 0, minutes: 0, seconds: 0 };
                 this.init();
             }
 
             init() {
-                this.updateTime();
+                // Сразу обновляем дату и инфо о зоне
                 this.updateDate();
                 this.displayTimezone();
+                
                 // Обновляем каждую секунду
                 setInterval(() => {
                     this.updateTime();
-                    this.updateDate();
+                    // Дату тоже можно обновлять раз в минуту, но раз в секунду — проще и точно не пропустим смену дня
+                    this.updateDate(); 
                 }, 1000);
             }
 
@@ -138,22 +176,32 @@
             }
 
             updateTime() {
+                const tz = this.elements.select.value; // Получаем выбранную зону (или пустую строку)
                 const now = new Date();
+
+                // Формируем время с учётом часового пояса
                 const currentTime = {
-                    hours: now.getHours(),
-                    minutes: now.getMinutes(),
-                    seconds: now.getSeconds()
+                    hours: now.toLocaleString('ru-RU', { timeZone: tz, hour: 'numeric', hour12: false }).padStart(2, '0'),
+                    minutes: now.toLocaleString('ru-RU', { timeZone: tz, minute: '2-digit' }),
+                    seconds: now.toLocaleString('ru-RU', { timeZone: tz, second: '2-digit' })
+                };
+
+                // Преобразуем строки обратно в числа для сравнения анимации
+                const currentNums = {
+                    hours: parseInt(currentTime.hours),
+                    minutes: parseInt(currentTime.minutes),
+                    seconds: parseInt(currentTime.seconds)
                 };
 
                 // Анимация при изменении цифр
-                Object.keys(currentTime).forEach(unit => {
-                    if (currentTime[unit] !== this.previousTime[unit]) {
-                        this.elements[unit].textContent = this.formatNumber(currentTime[unit]);
+                Object.keys(currentNums).forEach(unit => {
+                    if (currentNums[unit] !== this.previousTime[unit]) {
+                        this.elements[unit].textContent = currentTime[unit];
                         this.animateDigitChange(this.elements[unit]);
                     }
                 });
 
-                this.previousTime = {...currentTime};
+                this.previousTime = {...currentNums};
             }
 
             animateDigitChange(element) {
@@ -164,20 +212,28 @@
             }
 
             updateDate() {
+                const tz = this.elements.select.value;
                 const now = new Date();
+                
                 const options = {
                     weekday: 'long',
                     year: 'numeric',
                     month: 'long',
                     day: 'numeric'
                 };
-                const dateString = now.toLocaleDateString('ru-RU', options);
+                
+                const dateString = now.toLocaleDateString('ru-RU', { ...options, timeZone: tz });
                 this.elements.dateDisplay.textContent = dateString.charAt(0).toUpperCase() + dateString.slice(1);
             }
 
             displayTimezone() {
-                const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-                this.elements.timezoneInfo.textContent = `Часовой пояс: ${timezone}`;
+                const tzValue = this.elements.select.value;
+                if (tzValue) {
+                    this.elements.timezoneInfo.textContent = `Часовой пояс: ${tzValue}`;
+                } else {
+                    const resolvedTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+                    this.elements.timezoneInfo.textContent = `Часовой пояс: (локальный) ${resolvedTz}`;
+                }
             }
         }
 
@@ -188,3 +244,4 @@
     </script>
 </body>
 </html>
+
