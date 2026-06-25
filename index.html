@@ -5,25 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Цифровые часы</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Segoe UI', sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
         }
-
-        .container {
-            text-align: center;
-        }
-
         .clock-widget {
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(10px);
@@ -33,85 +23,28 @@
             width: 90%;
             box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
             border: 1px solid rgba(255, 255, 255, 0.2);
+            text-align: center;
         }
-
-        h1 {
-            color: white;
-            margin-bottom: 30px;
-            font-size: 2rem;
-            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-        }
-
-        .timezone-controls {
-            margin-bottom: 25px;
-        }
+        h1 { color: white; margin-bottom: 30px; font-size: 2rem; text-shadow: 0 2px 10px rgba(0,0,0,0.3); }
         
-        .timezone-controls label {
-            display: block;
-            color: rgba(255,255,255,0.8);
-            margin-bottom: 8px;
-            font-weight: 500;
-        }
-
+        .timezone-controls { margin-bottom: 25px; }
+        .timezone-controls label { display: block; color: rgba(255,255,255,0.8); margin-bottom: 8px; font-weight: 500; }
         #city-select {
-            padding: 10px 15px;
-            border-radius: 8px;
-            border: none;
-            outline: none;
-            font-size: 1rem;
-            cursor: pointer;
-            color: #333;
-            width: 100%;
-            max-width: 300px;
+            padding: 10px 15px; border-radius: 8px; border: none; outline: none;
+            font-size: 1rem; cursor: pointer; color: #333; width: 100%; max-width: 300px;
         }
 
-        .time-display {
-            display: flex;
-            justify-content: center;
-            align-items: baseline;
-            gap: 10px;
-            margin-bottom: 25px;
-        }
-
+        .time-display { display: flex; justify-content: center; align-items: baseline; gap: 10px; margin-bottom: 25px; }
         .time-part {
-            font-size: 3.5rem;
-            font-weight: bold;
-            color: white;
+            font-size: 3.5rem; font-weight: bold; color: white;
             text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
-            padding: 5px 15px;
-            border-radius: 10px;
-            background: rgba(0, 0, 0, 0.2);
-            transition: all 0.3s ease;
+            padding: 5px 15px; border-radius: 10px; background: rgba(0, 0, 0, 0.2);
         }
+        .separator { font-size: 3.5rem; color: rgba(255, 255, 255, 0.7); animation: blink 1s step-end infinite; }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
 
-        .separator {
-            font-size: 3.5rem;
-            color: rgba(255, 255, 255, 0.7);
-            animation: blink 1s step-end infinite;
-        }
-
-        @keyframes blink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0; }
-        }
-
-        .date-display {
-            color: rgba(255, 255, 255, 0.8);
-            font-size: 1.2rem;
-            margin-bottom: 15px;
-            text-shadow: 0 1px 5px rgba(0, 0, 0, 0.3);
-        }
-
-        .timezone-info {
-            color: rgba(255, 255, 255, 0.6);
-            font-size: 0.9rem;
-            font-style: italic;
-        }
-
-        .time-part.updated {
-            transform: scale(1.2);
-            background: rgba(255, 255, 255, 0.2);
-        }
+        .date-display { color: rgba(255, 255, 255, 0.8); font-size: 1.2rem; margin-bottom: 15px; text-shadow: 0 1px 5px rgba(0,0,0,0.3); }
+        .timezone-info { color: rgba(255, 255, 255, 0.6); font-size: 0.9rem; font-style: italic; }
     </style>
 </head>
 <body>
@@ -123,9 +56,9 @@
                 <label for="city-select">Часовой пояс:</label>
                 <select id="city-select">
                     <option value="" selected>Местное время</option>
-                    <option value="Europe/Moscow">Москва (Europe/Moscow)</option>
-                    <option value="America/New_York">Нью-Йорк (America/New_York)</option>
-                    <option value="Asia/Tokyo">Токио (Asia/Tokyo)</option>
+                    <option value="Europe/Moscow">Москва</option>
+                    <option value="America/New_York">Нью-Йорк</option>
+                    <option value="Asia/Tokyo">Токио</option>
                 </select>
             </div>
 
@@ -142,118 +75,43 @@
     </div>
 
     <script>
-      class DigitalClock {
-        constructor() {
-          this.elements = {
-            hours: document.querySelector('.hours'),
-            minutes: document.querySelector('.minutes'),
-            seconds: document.querySelector('.seconds'),
-            dateDisplay: document.querySelector('.date-display'),
-            timezoneInfo: document.querySelector('.timezone-info'),
-            select: document.getElementById('city-select')
-          };
+        const hoursEl = document.querySelector('.hours');
+        const minutesEl = document.querySelector('.minutes');
+        const secondsEl = document.querySelector('.seconds');
+        const dateEl = document.querySelector('.date-display');
+        const tzInfoEl = document.querySelector('.timezone-info');
+        const selectEl = document.getElementById('city-select');
 
-          if (!this.elements.hours || !this.elements.select) {
-            console.error('Не найдены элементы часов или селекта часовых поясов');
-            return;
-          }
+        function update() {
+            const tz = selectEl.value; // пустая строка = локальное время
 
-          this.previousTime = { hours: -1, minutes: -1, seconds: -1 };
-          this.init();
+            // Время
+            const timeOpts = { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false, timeZone: tz || undefined };
+            const timeStr = new Date().toLocaleTimeString('ru-RU', timeOpts);
+            // toLocaleTimeString возвращает "HH:MM:SS" — просто разбираем по двоеточию
+            const [h, m, s] = timeStr.split(':');
+            hoursEl.textContent = h;
+            minutesEl.textContent = m;
+            secondsEl.textContent = s;
+
+            // Дата
+            const dateOpts = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', timeZone: tz || undefined };
+            let dateStr = new Date().toLocaleDateString('ru-RU', dateOpts);
+            dateStr = dateStr.charAt(0).toUpperCase() + dateStr.slice(1);
+            dateEl.textContent = dateStr;
+
+            // Инфо о зоне
+            if (tz) {
+                tzInfoEl.textContent = `Часовой пояс: ${tz}`;
+            } else {
+                const resolved = Intl.DateTimeFormat().resolvedOptions().timeZone;
+                tzInfoEl.textContent = `Часовой пояс: (локальный) ${resolved}`;
+            }
         }
 
-        init() {
-          this.updateDate();
-          this.displayTimezone();
-          setInterval(() => {
-            this.updateTime();
-            this.updateDate();
-          }, 1000);
-        }
-
-        formatNum(num) {
-          return String(num).padStart(2, '0');
-        }
-
-        // ВОТ ЭТОТ МЕТОД ТЕПЕРЬ ПРАВИЛЬНЫЙ — ключи совпадают с previousTime
-        getParts(tz) {
-          const formatter = new Intl.DateTimeFormat('ru-RU', {
-            timeZone: tz,
-            hour: 'numeric',
-            minute: '2-digit',
-            second: '2-digit',
-            hour12: false
-          });
-          const parts = formatter.formatToParts(new Date());
-          const result = { hours: 0, minutes: 0, seconds: 0 };
-
-          for (const p of parts) {
-            if (p.type === 'hour') result.hours = Number(p.value);
-            if (p.type === 'minute') result.minutes = Number(p.value);
-            if (p.type === 'second') result.seconds = Number(p.value);
-          }
-          return result;
-        }
-
-        updateTime() {
-          const tz = this.elements.select.value;
-          const now = this.getParts(tz);
-
-          if (now.hours !== this.previousTime.hours) {
-            this.elements.hours.textContent = this.formatNum(now.hours);
-            this.animateDigitChange(this.elements.hours);
-          }
-          if (now.minutes !== this.previousTime.minutes) {
-            this.elements.minutes.textContent = this.formatNum(now.minutes);
-            this.animateDigitChange(this.elements.minutes);
-          }
-          if (now.seconds !== this.previousTime.seconds) {
-            this.elements.seconds.textContent = this.formatNum(now.seconds);
-            this.animateDigitChange(this.elements.seconds);
-          }
-
-          this.previousTime = {
-            hours: now.hours,
-            minutes: now.minutes,
-            seconds: now.seconds
-          };
-        }
-
-        animateDigitChange(element) {
-          element.classList.remove('updated');
-          void element.offsetWidth; // принудительный reflow
-          element.classList.add('updated');
-        }
-
-        updateDate() {
-          const tz = this.elements.select.value;
-          const now = new Date();
-          const options = {
-            weekday: 'long',
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
-          };
-          const dateString = now.toLocaleDateString('ru-RU', { ...options, timeZone: tz });
-          this.elements.dateDisplay.textContent = dateString.charAt(0).toUpperCase() + dateString.slice(1);
-        }
-
-        displayTimezone() {
-          const tzValue = this.elements.select.value;
-          if (tzValue) {
-            this.elements.timezoneInfo.textContent = `Часовой пояс: ${tzValue}`;
-          } else {
-            const resolvedTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-            this.elements.timezoneInfo.textContent = `Часовой пояс: (локальный) ${resolvedTz}`;
-          }
-        }
-      }
-
-      document.addEventListener('DOMContentLoaded', () => {
-        new DigitalClock();
-      });
+        // Обновляем сразу и потом каждую секунду
+        update();
+        setInterval(update, 1000);
     </script>
 </body>
 </html>
-
-
