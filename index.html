@@ -42,7 +42,6 @@
             text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
         }
 
-        /* Стили для блока с выбором часового пояса */
         .timezone-controls {
             margin-bottom: 25px;
         }
@@ -120,7 +119,6 @@
         <div class="clock-widget">
             <h1>Цифровые часы</h1>
 
-            <!-- ВОТ ЗДЕСЬ ВЫПАДАЮЩИЙ СПИСОК -->
             <div class="timezone-controls">
                 <label for="city-select">Часовой пояс:</label>
                 <select id="city-select">
@@ -130,7 +128,6 @@
                     <option value="Asia/Tokyo">Токио (Asia/Tokyo)</option>
                 </select>
             </div>
-            <!-- ---------------------------- -->
 
             <div class="time-display">
                 <span class="time-part hours">00</span>
@@ -143,120 +140,119 @@
             <div class="timezone-info"></div>
         </div>
     </div>
-<script>
-  class DigitalClock {
-    constructor() {
-      this.elements = {
-        hours: document.querySelector('.hours'),
-        minutes: document.querySelector('.minutes'),
-        seconds: document.querySelector('.seconds'),
-        dateDisplay: document.querySelector('.date-display'),
-        timezoneInfo: document.querySelector('.timezone-info'),
-        select: document.getElementById('city-select')
-      };
 
-      if (!this.elements.hours || !this.elements.select) {
-        console.error('Не найдены элементы часов или селекта часовых поясов');
-        return;
+    <script>
+      class DigitalClock {
+        constructor() {
+          this.elements = {
+            hours: document.querySelector('.hours'),
+            minutes: document.querySelector('.minutes'),
+            seconds: document.querySelector('.seconds'),
+            dateDisplay: document.querySelector('.date-display'),
+            timezoneInfo: document.querySelector('.timezone-info'),
+            select: document.getElementById('city-select')
+          };
+
+          if (!this.elements.hours || !this.elements.select) {
+            console.error('Не найдены элементы часов или селекта часовых поясов');
+            return;
+          }
+
+          this.previousTime = { hours: -1, minutes: -1, seconds: -1 };
+          this.init();
+        }
+
+        init() {
+          this.updateDate();
+          this.displayTimezone();
+          setInterval(() => {
+            this.updateTime();
+            this.updateDate();
+          }, 1000);
+        }
+
+        formatNum(num) {
+          return String(num).padStart(2, '0');
+        }
+
+        // ВОТ ЭТОТ МЕТОД ТЕПЕРЬ ПРАВИЛЬНЫЙ — ключи совпадают с previousTime
+        getParts(tz) {
+          const formatter = new Intl.DateTimeFormat('ru-RU', {
+            timeZone: tz,
+            hour: 'numeric',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: false
+          });
+          const parts = formatter.formatToParts(new Date());
+          const result = { hours: 0, minutes: 0, seconds: 0 };
+
+          for (const p of parts) {
+            if (p.type === 'hour') result.hours = Number(p.value);
+            if (p.type === 'minute') result.minutes = Number(p.value);
+            if (p.type === 'second') result.seconds = Number(p.value);
+          }
+          return result;
+        }
+
+        updateTime() {
+          const tz = this.elements.select.value;
+          const now = this.getParts(tz);
+
+          if (now.hours !== this.previousTime.hours) {
+            this.elements.hours.textContent = this.formatNum(now.hours);
+            this.animateDigitChange(this.elements.hours);
+          }
+          if (now.minutes !== this.previousTime.minutes) {
+            this.elements.minutes.textContent = this.formatNum(now.minutes);
+            this.animateDigitChange(this.elements.minutes);
+          }
+          if (now.seconds !== this.previousTime.seconds) {
+            this.elements.seconds.textContent = this.formatNum(now.seconds);
+            this.animateDigitChange(this.elements.seconds);
+          }
+
+          this.previousTime = {
+            hours: now.hours,
+            minutes: now.minutes,
+            seconds: now.seconds
+          };
+        }
+
+        animateDigitChange(element) {
+          element.classList.remove('updated');
+          void element.offsetWidth; // принудительный reflow
+          element.classList.add('updated');
+        }
+
+        updateDate() {
+          const tz = this.elements.select.value;
+          const now = new Date();
+          const options = {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+          };
+          const dateString = now.toLocaleDateString('ru-RU', { ...options, timeZone: tz });
+          this.elements.dateDisplay.textContent = dateString.charAt(0).toUpperCase() + dateString.slice(1);
+        }
+
+        displayTimezone() {
+          const tzValue = this.elements.select.value;
+          if (tzValue) {
+            this.elements.timezoneInfo.textContent = `Часовой пояс: ${tzValue}`;
+          } else {
+            const resolvedTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+            this.elements.timezoneInfo.textContent = `Часовой пояс: (локальный) ${resolvedTz}`;
+          }
+        }
       }
 
-      this.previousTime = { hours: -1, minutes: -1, seconds: -1 };
-      this.init();
-    }
-
-    init() {
-      this.updateDate();
-      this.displayTimezone();
-      setInterval(() => {
-        this.updateTime();
-        this.updateDate();
-      }, 1000);
-    }
-
-    formatNum(num) {
-      return String(num).padStart(2, '0');
-    }
-
-    getParts(tz) {
-      const formatter = new Intl.DateTimeFormat('ru-RU', {
-        timeZone: tz,
-        hour: 'numeric',
-        minute: '2-digit',
-        second: '2-digit',
-        hour12: false
+      document.addEventListener('DOMContentLoaded', () => {
+        new DigitalClock();
       });
-      const parts = formatter.formatToParts(new Date());
-      const result = { h: 0, m: 0, s: 0 };
-
-      for (const p of parts) {
-        if (p.type === 'hour') result.h = Number(p.value);
-        if (p.type === 'minute') result.m = Number(p.value);
-        if (p.type === 'second') result.s = Number(p.value);
-      }
-      return result;
-    }
-
-    updateTime() {
-      const tz = this.elements.select.value; // может быть пустой строкой
-      const now = this.getParts(tz);
-
-      // Сравниваем, чтобы запускать анимацию только при смене цифры
-      if (now.h !== this.previousTime.hours) {
-        this.elements.hours.textContent = this.formatNum(now.h);
-        this.animateDigitChange(this.elements.hours);
-      }
-      if (now.m !== this.previousTime.minutes) {
-        this.elements.minutes.textContent = this.formatNum(now.m);
-        this.animateDigitChange(this.elements.minutes);
-      }
-      if (now.s !== this.previousTime.seconds) {
-        this.elements.seconds.textContent = this.formatNum(now.s);
-        this.animateDigitChange(this.elements.seconds);
-      }
-
-      this.previousTime = {
-        hours: now.h,
-        minutes: now.m,
-        seconds: now.s
-      };
-    }
-
-    animateDigitChange(element) {
-      element.classList.remove('updated');
-      void element.offsetWidth; // принудительный reflow, чтобы анимация сработала
-      element.classList.add('updated');
-    }
-
-    updateDate() {
-      const tz = this.elements.select.value;
-      const now = new Date();
-      const options = {
-        weekday: 'long',
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-      };
-      const dateString = now.toLocaleDateString('ru-RU', { ...options, timeZone: tz });
-      this.elements.dateDisplay.textContent = dateString.charAt(0).toUpperCase() + dateString.slice(1);
-    }
-
-    displayTimezone() {
-      const tzValue = this.elements.select.value;
-      if (tzValue) {
-        this.elements.timezoneInfo.textContent = `Часовой пояс: ${tzValue}`;
-      } else {
-        const resolvedTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-        this.elements.timezoneInfo.textContent = `Часовой пояс: (локальный) ${resolvedTz}`;
-      }
-    }
-  }
-
-  document.addEventListener('DOMContentLoaded', () => {
-    new DigitalClock();
-  });
-</script>
-
-   
+    </script>
 </body>
 </html>
 
